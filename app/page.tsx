@@ -329,8 +329,4 @@ export default function MainDashboard() {
       </main>
     </div>
   );
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 5565c9cd8b14a3b2484c665c2647bd9d260cdc91
