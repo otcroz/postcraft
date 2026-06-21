@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-// 환경 변수에서 네이버 API 자격 증명을 가져옴
-const CLIENT_ID = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID;
-const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET;
+// 환경 변수에서 네이버 API 자격 증명을 가져옴 (타입 단언)
+const CLIENT_ID = process.env.NEXT_PUBLIC_NAVER_CLIENT_ID as string;
+const CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET as string;
 
 if (!CLIENT_ID || !CLIENT_SECRET) {
   throw new Error("Naver API 자격증명이 설정되지 않았습니다.");
