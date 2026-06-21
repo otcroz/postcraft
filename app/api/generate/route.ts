@@ -2,10 +2,17 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { theme, memo, useSlang, addFlaw, useSeo, imageCount } = await req.json();
+    const { theme, memo, useSlang, addFlaw, useSeo, imageCount } =
+      await req.json();
 
-    const naverImagesText = imageCount > 0 ? `본문 전반에 걸쳐 [이미지 1]부터 [이미지 ${Math.min(imageCount, 15)}] 슬롯을 문맥 흐름에 맞게 촘촘히 쪼개어 강제 분산 배치해줘.` : "중간중간 적절하게 [이미지 슬롯]을 표기해줘.";
-    const tistoryImagesText = imageCount > 0 ? `본문 상단, 중단, 하단 등 핵심 정보가 끝나는 지점에 정확하게 딱 3~4장 정도만 [이미지 1], [이미지 2] 형태로 정갈하게 배치해줘.` : "";
+    const naverImagesText =
+      imageCount > 0
+        ? `본문 전반에 걸쳐 [이미지 1]부터 [이미지 ${Math.min(imageCount, 15)}] 슬롯을 문맥 흐름에 맞게 촘촘히 쪼개어 강제 분산 배치해줘.`
+        : "중간중간 적절하게 [이미지 슬롯]을 표기해줘.";
+    const tistoryImagesText =
+      imageCount > 0
+        ? `본문 상단, 중단, 하단 등 핵심 정보가 끝나는 지점에 정확하게 딱 3~4장 정도만 [이미지 1], [이미지 2] 형태로 정갈하게 배치해줘.`
+        : "";
 
     const systemPrompt = `
       당신은 대한민국 최고의 파워블로거이자 디지털 마케터입니다.
@@ -35,19 +42,29 @@ export async function POST(req: Request) {
       }
     `;
 
-    // 💡 [수정 완료] 환경 변수 체크를 제거하고, 이전에 작동하던 제미나이 API 키를 코드에 직접 박았습니다.
-    const GEMINI_API_KEY = "AIzaSyAEN51N4rlvI303kzw53djgbEgpw4at7fI";
+    // 환경 변수에서 Gemini API 키를 가져옴
+    const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: "Gemini API 키가 설정되지 않았습니다." },
+        { status: 500 },
+      );
+    }
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
     const payload = {
-      contents: [{
-        parts: [{
-          text: `${systemPrompt}\n\n테마: ${theme}\n요청내용:\n${memo}`
-        }]
-      }],
+      contents: [
+        {
+          parts: [
+            {
+              text: `${systemPrompt}\n\n테마: ${theme}\n요청내용:\n${memo}`,
+            },
+          ],
+        },
+      ],
       generationConfig: {
-        responseMimeType: "application/json"
-      }
+        responseMimeType: "application/json",
+      },
     };
 
     const response = await fetch(geminiUrl, {
@@ -63,16 +80,22 @@ export async function POST(req: Request) {
     if (aiResult.error) {
       console.error("❌ 제미나이 API 응답 에러 발생:", aiResult.error);
       return NextResponse.json(
-        { error: `Gemini API Error: ${aiResult.error.message}` }, 
-        { status: aiResult.error.code || 500 }
+        { error: `Gemini API Error: ${aiResult.error.message}` },
+        { status: aiResult.error.code || 500 },
       );
     }
 
     if (!aiResult.candidates || aiResult.candidates.length === 0) {
-      console.error("❌ 제미나이가 결과를 주지 않았습니다. 전체 응답:", aiResult);
+      console.error(
+        "❌ 제미나이가 결과를 주지 않았습니다. 전체 응답:",
+        aiResult,
+      );
       return NextResponse.json(
-        { error: "제미나이 서버에서 유효한 답변 후보(candidates)를 받지 못했습니다." }, 
-        { status: 500 }
+        {
+          error:
+            "제미나이 서버에서 유효한 답변 후보(candidates)를 받지 못했습니다.",
+        },
+        { status: 500 },
       );
     }
 
@@ -82,6 +105,9 @@ export async function POST(req: Request) {
     return NextResponse.json(parsedContent);
   } catch (error: any) {
     console.error("🔥 백엔드 치명적 서버 오류:", error);
-    return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: error.message || "Internal Server Error" },
+      { status: 500 },
+    );
   }
 }
