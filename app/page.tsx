@@ -26,7 +26,7 @@ export default function MainDashboard() {
   }, [theme]);
 
   const applyOutline = (outline: string, keyword: string) => {
-    setMemo(`[추천 키워드: ${keyword}]\n\n${outline}\n\n[나의 실제 경험 메모]: `);
+    setMemo(`[추천 키워드: ${keyword}]\n\n${outline}`);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
